@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+    <style>
+    body, input {
+      font-family: sans-serif;
+      font-size: 12pt;
+      color: #777;
+    }
+    body {
+      background: #dfdfdf;
+    }
+    input {
+      border-radius: 3px;
+      border: 1px solid #777;
+      outline: 0;
+      padding: 3px;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    #output {
+      display: flex;
+      flex-direction: column;
+    }
+    #controllers {
+      background: linear-gradient(black, #555 );
+      color: white;
+      top: 0;
+      position: sticky;
+      padding: 20px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+    button {
+      background: tomato;
+      color: white;
+      border: 2px solid white;
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .node, #controllers {
+      border-bottom: 2px solid tomato;
+    }
+    .node {
+      padding: 20px;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .node input {
+      flex: 1;
+    }
+    #total {
+      margin-left: 10px;
+    }
+    </style>
+  
+    <title>Time splits</title>
+  
+  </head>
+  <body>
+  
+    <div id='controllers'>
+      <button onclick="newNode()">Nova marcação</button>
+      <div id="total"></div>
+    </div>
+
+    <div id='output'>
+    </div>
+  
+    <script>
+    function getTime() {
+      const d = new Date();
+      return {hours:d.getHours(),
+              minutes: d.getMinutes(),
+              seconds: d.getSeconds()};
+    }
+
+    //=================================
+
+    function hmsToSeconds(s) {
+      var b = s.split(':');
+      return b[0]*3600 + b[1]*60 + (+b[2] || 0);
+    }
+
+    function secondsToHMS(secs) {
+      function z(n){return (n<10?'0':'') + n;}
+      var sign = secs < 0? '-':'';
+      secs = Math.abs(secs);
+      return sign + z(secs/3600 |0) + ':' + z((secs%3600) / 60 |0) + ':' + z(secs%60);
+    }
+
+    const timeDiffs = (a, b) => {
+      return secondsToHMS(hmsToSeconds(a) - hmsToSeconds(b));
+    }
+
+    //=================================
+
+    function newNode() {
+      const el = document.createElement('div');
+      const d = getTime();
+      el.innerHTML = `
+        <div class="node" data-hours="${d.hours}" data-minutes="${d.minutes}" data-seconds="${d.seconds}">
+           <span class="time-formated">${d.hours}:${d.minutes}:${d.seconds}</span>
+           <input />
+           <span class="duration">(00:00:00)</span>
+        </div>
+      `;
+      output.appendChild(el);
+      el.querySelector('input').focus();
+      calcular();
+    }
+
+    function calcular() {
+      const nodes = document.querySelectorAll('.node');
+      let results = [];
+      
+      for (let i = 0; i < nodes.length-1; i++) {
+        const currNode = nodes[i];
+        const nextNode = nodes[i+1];
+        const cnt = currNode.querySelector('.time-formated').innerText;
+        const nnt = nextNode.querySelector('.time-formated').innerText;
+        document.querySelectorAll('.duration')[i].innerText = `(${timeDiffs(nnt, cnt)})`;
+      }
+      
+      const initialTime = nodes[0].querySelector('.time-formated').innerText;
+      const finalTime = nodes[nodes.length-1].querySelector('.time-formated').innerText;
+      
+      document.querySelector('#total').innerHTML= `<strong>Início</strong>: ${initialTime}<br/><strong>Fim</strong>: ${finalTime}<br/><strong>Total</strong>: ${timeDiffs(finalTime, initialTime)}`;
+    }
+
+    </script>
+  
+  </body>
+</html>
